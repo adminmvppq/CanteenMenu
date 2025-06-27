@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thực Đơn Căng Tin</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { text-align: center; }
+    .calendar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .day { border: 1px solid #ccc; padding: 10px; border-radius: 5px; background: #f9f9f9; }
+    .highlight { background-color: #ffeeba; }
+    .controls { margin: 20px 0; text-align: center; }
+    @media print {
+      body * { visibility: hidden; }
+      .printable, .printable * { visibility: visible; }
+      .printable { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Thực Đơn Căng Tin</h1>
+  <div class="controls">
+    <label for="searchDate">Tìm theo ngày:</label>
+    <input type="date" id="searchDate">
+    <button onclick="highlightDate()">Tìm</button>
+    <button onclick="printWeek()">In tuần này</button>
+    <button onclick="printMonth()">In cả tháng</button>
+  </div>
+  <div id="calendar" class="calendar printable"></div>
+
+  <script>
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ.../pub?output=csv'; // Thay bằng link CSV của bạn
+
+    let menuData = [];
+
+    function fetchData() {
+      fetch(sheetUrl)
+        .then(response => response.text())
+        .then(csv => {
+          const lines = csv.trim().split('\n');
+          const headers = lines[0].split(',');
+          menuData = lines.slice(1).map(line => {
+            const cols = line.split(',');
+            return {
+              date: cols[0],
+              breakfast: cols[1],
+              lunch: cols[2],
+              dinner: cols[3]
+            };
+          });
+          renderCalendar();
+        });
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = '';
+      menuData.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'day';
+        div.setAttribute('data-date', item.date);
+        div.innerHTML = `<strong>${item.date}</strong><br>
+                         <em>Bữa sáng:</em> ${item.breakfast}<br>
+                         <em>Bữa trưa:</em> ${item.lunch}<br>
+                         <em>Bữa tối:</em> ${item.dinner}`;
+        calendar.appendChild(div);
+      });
+    }
+
+    function highlightDate() {
+      const inputDate = document.getElementById('searchDate').value;
+      document.querySelectorAll('.day').forEach(el => {
+        el.classList.remove('highlight');
+        if (el.getAttribute('data-date') === inputDate) {
+          el.classList.add('highlight');
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    }
+
+    function printWeek() {
+      const today = new Date();
+      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      document.querySelectorAll('.day').forEach(el => {
+        const elDate = new Date(el.getAttribute('data-date'));
+        if (elDate >= startOfWeek && elDate <= endOfWeek) {
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+      window.print();
+      renderCalendar(); // reset view
+    }
+
+    function printMonth() {
+      document.querySelectorAll('.day').forEach(el => el.style.display = 'block');
+      window.print();
+    }
+
+    fetchData();
+  </script>
+</body>
+</html>
