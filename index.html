@@ -2,41 +2,87 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Thực Đơn Căng Tin</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1 { text-align: center; }
-    .calendar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-    .day { border: 1px solid #ccc; padding: 10px; border-radius: 5px; background: #f9f9f9; }
-    .highlight { background-color: #ffeeba; }
-    .controls { margin: 20px 0; text-align: center; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f9;
+      color: #333;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #fff;
+    }
+    .controls input, .controls select, .controls button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .day-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+    }
+    .day-card.highlight {
+      border: 2px solid #4CAF50;
+    }
+    .day-card h3 {
+      margin-top: 0;
+      color: #4CAF50;
+    }
     @media print {
-      body * { visibility: hidden; }
-      .printable, .printable * { visibility: visible; }
-      .printable { position: absolute; left: 0; top: 0; width: 100%; }
+      .controls {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Thực Đơn Căng Tin</h1>
+  <header>
+    <h1>Thực Đơn Căng Tin</h1>
+  </header>
   <div class="controls">
-    <label for="searchDate">Tìm theo ngày:</label>
-    <input type="date" id="searchDate">
-    <button onclick="highlightDate()">Tìm</button>
+    <label>Tháng:
+      <select id="monthSelect"></select>
+    </label>
+    <label>Năm:
+      <select id="yearSelect"></select>
+    </label>
+    <label>Ngày:
+      <input type="date" id="searchDate"/>
+    </label>
     <button onclick="printWeek()">In tuần này</button>
-    <button onclick="printMonth()">In cả tháng</button>
+    <button onclick="window.print()">In cả tháng</button>
   </div>
-  <div id="calendar" class="calendar printable"></div>
+  <div class="calendar" id="calendar"></div>
 
   <script>
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRmFqSY8mFtGKuW4bZMGA0FhpFc_HkcrzCS0kHEfaXoxftcxFV50NlEZyKVE44xlP4iyQwOkajMf4xz/pub?output=csv'; // Thay bằng link CSV của bạn
-
     let menuData = [];
 
     function fetchData() {
       fetch(sheetUrl)
-        .then(response => response.text())
+        .then(res => res.text())
         .then(csv => {
           const lines = csv.trim().split('\n');
           const headers = lines[0].split(',');
@@ -49,57 +95,75 @@
               dinner: cols[3]
             };
           });
+          populateMonthYear();
           renderCalendar();
         });
     }
 
+    function populateMonthYear() {
+      const monthSelect = document.getElementById('monthSelect');
+      const yearSelect = document.getElementById('yearSelect');
+      const dates = menuData.map(item => new Date(item.date));
+      const months = [...new Set(dates.map(d => d.getMonth()))];
+      const years = [...new Set(dates.map(d => d.getFullYear()))];
+
+      monthSelect.innerHTML = months.map(m => `<option value="${m}">${m+1}</option>`).join('');
+      yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+      monthSelect.value = new Date().getMonth();
+      yearSelect.value = new Date().getFullYear();
+
+      monthSelect.onchange = renderCalendar;
+      yearSelect.onchange = renderCalendar;
+      document.getElementById('searchDate').onchange = highlightDate;
+    }
+
     function renderCalendar() {
+      const month = parseInt(document.getElementById('monthSelect').value);
+      const year = parseInt(document.getElementById('yearSelect').value);
       const calendar = document.getElementById('calendar');
       calendar.innerHTML = '';
-      menuData.forEach(item => {
+
+      const filtered = menuData.filter(item => {
+        const d = new Date(item.date);
+        return d.getMonth() === month && d.getFullYear() === year;
+      });
+
+      filtered.forEach(item => {
+        const d = new Date(item.date);
         const div = document.createElement('div');
-        div.className = 'day';
-        div.setAttribute('data-date', item.date);
-        div.innerHTML = `<strong>${item.date}</strong><br>
-                         <em>Bữa sáng:</em> ${item.breakfast}<br>
-                         <em>Bữa trưa:</em> ${item.lunch}<br>
-                         <em>Bữa tối:</em> ${item.dinner}`;
+        div.className = 'day-card';
+        div.dataset.date = item.date;
+        div.innerHTML = `
+          <h3>${d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}</h3>
+          <p><strong>Bữa sáng:</strong> ${item.breakfast}</p>
+          <p><strong>Bữa trưa:</strong> ${item.lunch}</p>
+          <p><strong>Bữa tối:</strong> ${item.dinner}</p>
+        `;
         calendar.appendChild(div);
       });
     }
 
     function highlightDate() {
-      const inputDate = document.getElementById('searchDate').value;
-      document.querySelectorAll('.day').forEach(el => {
-        el.classList.remove('highlight');
-        if (el.getAttribute('data-date') === inputDate) {
-          el.classList.add('highlight');
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+      const date = document.getElementById('searchDate').value;
+      document.querySelectorAll('.day-card').forEach(card => {
+        card.classList.toggle('highlight', card.dataset.date === date);
       });
     }
 
     function printWeek() {
       const today = new Date();
-      const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      const start = new Date(today);
+      start.setDate(today.getDate() - today.getDay() + 1); // Monday
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6); // Sunday
 
-      document.querySelectorAll('.day').forEach(el => {
-        const elDate = new Date(el.getAttribute('data-date'));
-        if (elDate >= startOfWeek && elDate <= endOfWeek) {
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
-        }
+      document.querySelectorAll('.day-card').forEach(card => {
+        const d = new Date(card.dataset.date);
+        card.style.display = (d >= start && d <= end) ? 'block' : 'none';
       });
       window.print();
-      renderCalendar(); // reset view
-    }
-
-    function printMonth() {
-      document.querySelectorAll('.day').forEach(el => el.style.display = 'block');
-      window.print();
+      renderCalendar(); // reset after print
     }
 
     fetchData();
