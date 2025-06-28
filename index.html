@@ -26,6 +26,13 @@
       padding: 8px;
       font-size: 16px;
     }
+    #loading {
+      text-align: center;
+      font-size: 18px;
+      color: #0077cc;
+      display: none;
+      margin-bottom: 20px;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -57,6 +64,7 @@
     </select>
     <button id="searchBtn">Tìm kiếm</button>
   </div>
+  <div id="loading">Đang tải dữ liệu...</div>
   <div class="grid" id="menuGrid"></div>
 
   <script>
@@ -75,11 +83,17 @@
       });
     }
 
+    function parseDate(str) {
+      const [y, m, d] = str.split('-');
+      return new Date(Number(y), Number(m) - 1, Number(d));
+    }
+
     function filterData(data, date, range) {
       const today = new Date();
       return data.filter(item => {
-        const itemDate = new Date(item['Ngày']);
+        const itemDate = parseDate(item['Ngày']);
         if (date && item['Ngày'] !== date) return false;
+
         if (range === 'week') {
           const startOfWeek = new Date(today);
           startOfWeek.setDate(today.getDate() - today.getDay());
@@ -87,10 +101,12 @@
           endOfWeek.setDate(startOfWeek.getDate() + 6);
           return itemDate >= startOfWeek && itemDate <= endOfWeek;
         }
+
         if (range === 'month') {
           return itemDate.getMonth() === today.getMonth() &&
                  itemDate.getFullYear() === today.getFullYear();
         }
+
         return true;
       });
     }
@@ -115,13 +131,19 @@
     }
 
     document.getElementById('searchBtn').addEventListener('click', async () => {
+      const loading = document.getElementById('loading');
+      loading.style.display = 'block';
+
       if (allData.length === 0) {
         allData = await fetchCSV();
       }
+
       const date = document.getElementById('dateFilter').value;
       const range = document.getElementById('rangeFilter').value;
       const filtered = filterData(allData, date, range);
       renderGrid(filtered);
+
+      loading.style.display = 'none';
     });
   </script>
 </body>
