@@ -11,6 +11,16 @@
       margin: 0;
       padding: 20px;
     }
+    
+    .logo-container {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .logo {
+      max-height: 80px;
+      object-fit: contain;
+    }
+
     h1 {
       text-align: center;
       color: #333;
@@ -54,6 +64,9 @@
   </style>
 </head>
 <body>
+  <div class="logo-container">
+  <img src="img/mvp_pq_logo.png" alt="Logo MVP PQ" class="logo" />
+  </div>
   <h1>Thực Đơn Canteen Mövenpick Phu Quoc</h1>
   <div class="filters">
     <input type="date" id="dateFilter" />
