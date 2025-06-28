@@ -70,7 +70,7 @@
       const headers = rows.shift();
       return rows.map(row => {
         const obj = {};
-        headers.forEach((h, i) => obj[h] = row[i]);
+        headers.forEach((h, i) => obj[h.trim()] = row[i].trim());
         return obj;
       });
     }
