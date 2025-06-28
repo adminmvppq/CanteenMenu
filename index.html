@@ -67,84 +67,93 @@
   <div id="loading">Đang tải dữ liệu...</div>
   <div class="grid" id="menuGrid"></div>
 
-  <script>
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?output=csv';
-    let allData = [];
 
-    async function fetchCSV() {
-      const res = await fetch(csvUrl);
-      const text = await res.text();
-      const rows = text.trim().split('\n').map(row => row.split(','));
-      const headers = rows.shift();
-      return rows.map(row => {
-        const obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = row[i].trim());
-        return obj;
-      });
-    }
+<script>
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?output=csv';
+  let allData = [];
 
-    function parseDate(str) {
-      const [y, m, d] = str.split('-');
-      return new Date(Number(y), Number(m) - 1, Number(d));
-    }
+  async function fetchCSV() {
+    const res = await fetch(csvUrl);
+    const text = await res.text();
+    const rows = text.trim().split('\n').map(row => row.split(','));
+    const headers = rows.shift();
+    return rows.map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h.trim()] = row[i].trim());
+      return obj;
+    });
+  }
 
-    function filterData(data, date, range) {
-      const today = new Date();
-      return data.filter(item => {
-        const itemDate = parseDate(item['Ngày']);
-        if (date && item['Ngày'] !== date) return false;
+  function parseDate(str) {
+    const [y, m, d] = str.split('-');
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
 
-        if (range === 'week') {
-          const startOfWeek = new Date(today);
-          startOfWeek.setDate(today.getDate() - today.getDay());
-          const endOfWeek = new Date(startOfWeek);
-          endOfWeek.setDate(startOfWeek.getDate() + 6);
-          return itemDate >= startOfWeek && itemDate <= endOfWeek;
-        }
+  function filterData(data, selectedDateStr, range) {
+    const selectedDate = selectedDateStr ? parseDate(selectedDateStr) : new Date();
 
-        if (range === 'month') {
-          return itemDate.getMonth() === today.getMonth() &&
-                 itemDate.getFullYear() === today.getFullYear();
-        }
+    return data.filter(item => {
+      const itemDate = parseDate(item['Ngày']);
 
-        return true;
-      });
-    }
+      if (range === 'all') return true;
 
-    function renderGrid(data) {
-      const grid = document.getElementById('menuGrid');
-      grid.innerHTML = '';
-      const grouped = {};
-      data.forEach(item => {
-        if (!grouped[item['Ngày']]) grouped[item['Ngày']] = [];
-        grouped[item['Ngày']].push(item);
-      });
+      if (range === 'week') {
+        const dayOfWeek = selectedDate.getDay(); // 0 (Sun) - 6 (Sat)
+        const startOfWeek = new Date(selectedDate);
+        startOfWeek.setDate(selectedDate.getDate() - dayOfWeek);
+        startOfWeek.setHours(0, 0, 0, 0);
 
-      Object.keys(grouped).sort().forEach(date => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `<h3>${date}</h3>` + grouped[date].map(m =>
-          `<p><strong>${m['Bữa']}:</strong> ${m['Món ăn']}</p>`
-        ).join('');
-        grid.appendChild(card);
-      });
-    }
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
 
-    document.getElementById('searchBtn').addEventListener('click', async () => {
-      const loading = document.getElementById('loading');
-      loading.style.display = 'block';
+        return itemDate >= startOfWeek && itemDate <= endOfWeek;
+      }
 
-      if (allData.length === 0) {
-        allData = await fetchCSV();
-      }
+      if (range === 'month') {
+        return itemDate.getMonth() === selectedDate.getMonth() &&
+               itemDate.getFullYear() === selectedDate.getFullYear();
+      }
 
-      const date = document.getElementById('dateFilter').value;
-      const range = document.getElementById('rangeFilter').value;
-      const filtered = filterData(allData, date, range);
-      renderGrid(filtered);
+      // Mặc định: lọc theo ngày cụ thể
+      return itemDate.toDateString() === selectedDate.toDateString();
+    });
+  }
 
-      loading.style.display = 'none';
-    });
-  </script>
+  function renderGrid(data) {
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = '';
+    const grouped = {};
+    data.forEach(item => {
+      if (!grouped[item['Ngày']]) grouped[item['Ngày']] = [];
+      grouped[item['Ngày']].push(item);
+    });
+
+    Object.keys(grouped).sort().forEach(date => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<h3>${date}</h3>` + grouped[date].map(m =>
+        `<p><strong>${m['Bữa']}:</strong> ${m['Món ăn']}</p>`
+      ).join('');
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', async () => {
+    const loading = document.getElementById('loading');
+    loading.style.display = 'block';
+
+    if (allData.length === 0) {
+      allData = await fetchCSV();
+    }
+
+    const date = document.getElementById('dateFilter').value;
+    const range = document.getElementById('rangeFilter').value;
+    const filtered = filterData(allData, date, range);
+    renderGrid(filtered);
+
+    loading.style.display = 'none';
+  });
+</script>
 </body>
 </html>
