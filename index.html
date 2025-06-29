@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Canteen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS for responsive layout -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; }
+        .logo { max-height: 80px; }
+        .meal-section { margin-top: 30px; }
+        .meal-title { margin-top: 20px; font-weight: bold; }
+        .card { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <img src="https://via.placeholder.com/200x80?text=Company+Logo" alt="Company Logo" class="logo">
+        </div>
+
+        <!-- Date Picker -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <input type="date" id="datePicker" class="form-control">
+            </div>
+            <div class="col-md-8">
+                <button class="btn btn-primary me-2" onclick="filterByDate()">Tìm theo ngày</button>
+                <button class="btn btn-secondary me-2" onclick="filterByWeek()">Tìm theo tuần</button>
+                <button class="btn btn-success" onclick="filterByMonth()">Tìm theo tháng</button>
+            </div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div id="menuGrid" class="row row-cols-1 row-cols-md-3 g-4">
+            <!-- Cards will be inserted here -->
+        </div>
+    </div>
+
+    <!-- JavaScript to fetch and display data -->
+    <script>
+        let menuData = [];
+
+        async function fetchData() {
+            const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=1946670694&single=true&output=csv");
+            const text = await response.text();
+            const rows = text.split("\n").slice(1);
+            menuData = rows.map(row => {
+                const [date, meal, appetizer, main, dessert] = row.split(",");
+                return { date, meal, appetizer, main, dessert };
+            });
+            displayMenu(menuData);
+        }
+
+        function displayMenu(data) {
+            const grid = document.getElementById("menuGrid");
+            grid.innerHTML = "";
+            data.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "col";
+                card.innerHTML = `
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">${item.meal} - ${item.date}</h5>
+                            <p><strong>Khai vị:</strong> ${item.appetizer}</p>
+                            <p><strong>Món chính:</strong> ${item.main}</p>
+                            <p><strong>Tráng miệng:</strong> ${item.dessert}</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterByDate() {
+            const selected = document.getElementById("datePicker").value;
+            const filtered = menuData.filter(item => item.date === selected);
+            displayMenu(filtered);
+        }
+
+        function filterByWeek() {
+            const selected = new Date(document.getElementById("datePicker").value);
+            const start = new Date(selected);
+            start.setDate(selected.getDate() - selected.getDay());
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            const filtered = menuData.filter(item => {
+                const d = new Date(item.date);
+                return d >= start && d <= end;
+            });
+            displayMenu(filtered);
+        }
+
+        function filterByMonth() {
+            const selected = new Date(document.getElementById("datePicker").value);
+            const month = selected.getMonth();
+            const year = selected.getFullYear();
+            const filtered = menuData.filter(item => {
+                const d = new Date(item.date);
+                return d.getMonth() === month && d.getFullYear() === year;
+            });
+            displayMenu(filtered);
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
