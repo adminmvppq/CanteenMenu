@@ -77,30 +77,30 @@
     <div class="container">
         <div class="header d-flex align-items-center justify-content-between flex-wrap">
             <img src="https://adminmvppq.github.io/dataroom-mvppq/img/mvp_pq_logo.png" alt="MVP PQ Logo" class="logo">
-            <div class="d-flex align-items-center gap-3">
-                <h2 class="text-primary" id="title">Thực Đơn Canteen</h2>
-                <select id="languageSelect" class="form-select form-select-sm" onchange="changeLanguage()" style="width: auto;">
-                    <option value="vi">Viet Nam</option>
-                    <option value="en">English</option>
+            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
+                <h2 class="text-primary m-0">Thực Đơn Canteen</h2>
+                <select id="langSelect" class="form-select form-select-sm w-auto" onchange="changeLanguage()">
+                    <option value="vi">🇻🇳 Tiếng Việt</option>
+                    <option value="en">🇬🇧 English</option>
                 </select>
             </div>
         </div>
 
         <div class="search-bar row g-2 align-items-end">
             <div class="col-md-4">
-                <label for="searchType" class="form-label" id="labelSearchType">Loại tìm kiếm</label>
+                <label for="searchType" class="form-label" data-i18n="searchTypeLabel">Loại tìm kiếm</label>
                 <select id="searchType" class="form-select">
-                    <option value="day">Theo ngày</option>
-                    <option value="week">Theo tuần</option>
-                    <option value="month">Theo tháng</option>
+                    <option value="day" data-i18n="searchDay">Theo ngày</option>
+                    <option value="week" data-i18n="searchWeek">Theo tuần</option>
+                    <option value="month" data-i18n="searchMonth">Theo tháng</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label for="searchDate" class="form-label" id="labelSearchDate">Chọn ngày</label>
+                <label for="searchDate" class="form-label" data-i18n="chooseDate">Chọn ngày</label>
                 <input type="date" id="searchDate" class="form-control">
             </div>
             <div class="col-md-4">
-                <button class="btn btn-primary w-100" onclick="filterMenu()" id="btnSearch">Tìm</button>
+                <button class="btn btn-primary w-100" onclick="filterMenu()" data-i18n="searchBtn">Tìm</button>
             </div>
         </div>
 
@@ -109,49 +109,45 @@
 
     <script>
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=605327293&single=true&output=csv";
+        let currentLang = "vi";
 
-        const translations = {
+        const i18n = {
             vi: {
-                title: "Thực Đơn Canteen",
-                labelSearchType: "Loại tìm kiếm",
-                labelSearchDate: "Chọn ngày",
-                btnSearch: "Tìm",
-                meals: { "Sáng": "🌅 Sáng", "Trưa": "🌞 Trưa", "Tối": "🌙 Tối" },
+                searchTypeLabel: "Loại tìm kiếm",
+                searchDay: "Theo ngày",
+                searchWeek: "Theo tuần",
+                searchMonth: "Theo tháng",
+                chooseDate: "Chọn ngày",
+                searchBtn: "Tìm",
                 appetizer: "Khai vị",
                 main: "Món chính",
                 dessert: "Tráng miệng",
-                datePrefix: "Ngày"
+                dayLabel: "Ngày"
             },
             en: {
-                title: "Canteen Menu",
-                labelSearchType: "Search type",
-                labelSearchDate: "Select date",
-                btnSearch: "Search",
-                meals: { "Sáng": "🌅 Breakfast", "Trưa": "🌞 Lunch", "Tối": "🌙 Dinner" },
+                searchTypeLabel: "Search type",
+                searchDay: "By day",
+                searchWeek: "By week",
+                searchMonth: "By month",
+                chooseDate: "Select date",
+                searchBtn: "Search",
                 appetizer: "Appetizer",
                 main: "Main course",
                 dessert: "Dessert",
-                datePrefix: "Date"
+                dayLabel: "Date"
             }
         };
 
-        let currentLang = "vi";
-
-        function changeLanguage() {
-            currentLang = document.getElementById("languageSelect").value;
-            const t = translations[currentLang];
-            document.getElementById("title").innerText = t.title;
-            document.getElementById("labelSearchType").innerText = t.labelSearchType;
-            document.getElementById("labelSearchDate").innerText = t.labelSearchDate;
-            document.getElementById("btnSearch").innerText = t.btnSearch;
-            const options = document.getElementById("searchType").options;
-            options[0].text = currentLang === "vi" ? "Theo ngày" : "By day";
-            options[1].text = currentLang === "vi" ? "Theo tuần" : "By week";
-            options[2].text = currentLang === "vi" ? "Theo tháng" : "By month";
-        }
-
         function showLoading(show) {
             document.getElementById("loadingOverlay").style.display = show ? "flex" : "none";
+        }
+
+        function changeLanguage() {
+            currentLang = document.getElementById("langSelect").value;
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                el.innerText = i18n[currentLang][key];
+            });
         }
 
         async function fetchMenuData() {
@@ -178,26 +174,26 @@
         }
 
         function renderMenu(data) {
-            const t = translations[currentLang];
             const container = document.getElementById("menuContainer");
             container.innerHTML = "";
             const grouped = groupByDate(data);
             Object.keys(grouped).forEach(date => {
                 const dayBlock = document.createElement("div");
                 dayBlock.className = "col-12 menu-card";
-                dayBlock.innerHTML = `<div class="menu-title">${t.datePrefix} ${date}</div>`;
+                dayBlock.innerHTML = `<div class="menu-title">${i18n[currentLang].dayLabel} ${date}</div>`;
                 const meals = grouped[date];
                 ["Sáng", "Trưa", "Tối"].forEach(meal => {
                     const mealItems = meals.filter(m => m["Bữa ăn"] === meal);
                     if (mealItems.length > 0) {
                         const section = document.createElement("div");
                         section.className = "meal-section";
-                        section.innerHTML = `<h6>${t.meals[meal]}</h6>`;
+                        const icon = meal === "Sáng" ? "🌅" : meal === "Trưa" ? "🌞" : "🌙";
+                        section.innerHTML = `<h6>${icon} ${meal}</h6>`;
                         mealItems.forEach(item => {
                             section.innerHTML += `
-                                <div><strong>${t.appetizer}:</strong> ${item["Khai vị"]}</div>
-                                <div><strong>${t.main}:</strong> ${item["Món chính"]}</div>
-                                <div><strong>${t.dessert}:</strong> ${item["Tráng miệng"]}</div>
+                                <div><strong>${i18n[currentLang].appetizer}:</strong> ${item[\`Khai vị (${currentLang})\`] || ""}</div>
+                                <div><strong>${i18n[currentLang].main}:</strong> ${item[\`Món chính (${currentLang})\`] || ""}</div>
+                                <div><strong>${i18n[currentLang].dessert}:</strong> ${item[\`Tráng miệng (${currentLang})\`] || ""}</div>
                                 <hr>
                             `;
                         });
