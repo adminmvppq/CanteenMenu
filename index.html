@@ -115,7 +115,10 @@
         dayTitle: "Ngày",
         appetizer: "Khai vị",
         main: "Món chính",
-        dessert: "Tráng miệng"
+        dessert: "Tráng miệng",
+		breakfast: "Sáng",
+		lunch: "Trưa",
+		dinner: "Tối"
       },
       en: {
         pageTitle: "Canteen Menu",
@@ -128,7 +131,10 @@
         dayTitle: "Date",
         appetizer: "Appetizer",
         main: "Main course",
-        dessert: "Dessert"
+        dessert: "Dessert",
+		breakfast: "Breakfast",
+		lunch: "Lunch",
+		dinner: "Dinner"
       }
     };
 
@@ -179,33 +185,42 @@
     }
 
     function renderMenu(data) {
-      const t = translations[currentLang];
-      const container = document.getElementById("menuContainer");
-      container.innerHTML = "";
-      const grouped = groupByDate(data);
-      Object.keys(grouped).forEach(date => {
-        const card = document.createElement("div");
-        card.className = "col-12 menu-card";
-        card.innerHTML = `<div class="menu-title">${t.dayTitle} ${date}</div>`;
-        ["Sáng", "Trưa", "Tối"].forEach(meal => {
-          const items = grouped[date].filter(i => i["Bữa ăn"] === meal);
-          if (items.length > 0) {
-            const icon = meal === "Sáng" ? "🌅" : meal === "Trưa" ? "🌞" : "🌙";
-            const section = document.createElement("div");
-            section.innerHTML = `<h6>${icon} ${meal}</h6>`;
-            items.forEach(item => {
-              section.innerHTML += `
-			  <div><strong>${t.appetizer}:</strong> ${item[`Khai vị (${currentLang})`] ?? ""}</div>
-			  <div><strong>${t.main}:</strong> ${item[`Món chính (${currentLang})`] ?? ""}</div>
-			  <div><strong>${t.dessert}:</strong> ${item[`Tráng miệng (${currentLang})`] ?? ""}</div>
-			  <hr>`;
-            });
-            card.appendChild(section);
-          }
-        });
-        container.appendChild(card);
-      });
-    }
+	  const t = translations[currentLang];
+	  const container = document.getElementById("menuContainer");
+	  container.innerHTML = "";
+
+	  const grouped = groupByDate(data);
+
+	  const meals = [
+		{ key: "Sáng", label: t.breakfast, icon: "🌅" },
+		{ key: "Trưa", label: t.lunch, icon: "🌞" },
+		{ key: "Tối", label: t.dinner, icon: "🌙" }
+	  ];
+
+	  Object.keys(grouped).forEach(date => {
+		const card = document.createElement("div");
+		card.className = "col-12 menu-card";
+		card.innerHTML = `<div class="menu-title">${t.dayTitle} ${date}</div>`;
+
+		meals.forEach(({ key, label, icon }) => {
+		  const items = grouped[date].filter(i => i["Bữa ăn"] === key);
+		  if (items.length > 0) {
+			const section = document.createElement("div");
+			section.innerHTML = `<h6>${icon} ${label}</h6>`;
+			items.forEach(item => {
+			  section.innerHTML += `
+				<div><strong>${t.appetizer}:</strong> ${item[`Khai vị (${currentLang})`] ?? ""}</div>
+				<div><strong>${t.main}:</strong> ${item[`Món chính (${currentLang})`] ?? ""}</div>
+				<div><strong>${t.dessert}:</strong> ${item[`Tráng miệng (${currentLang})`] ?? ""}</div>
+				<hr>`;
+			});
+			card.appendChild(section);
+		  }
+		});
+
+		container.appendChild(card);
+	  });
+	}
 
     function filterMenu() {
       const type = document.getElementById("searchType").value;
