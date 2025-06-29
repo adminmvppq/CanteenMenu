@@ -1,248 +1,195 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Thực Đơn Canteen</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .logo {
-            max-height: 80px;
-        }
-        .header {
-            background-color: #ffffff;
-            padding: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .menu-card {
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .menu-title {
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .meal-section {
-            margin-bottom: 10px;
-        }
-        .meal-section h6 {
-            font-weight: bold;
-            color: #34495e;
-        }
-        .search-bar {
-            margin-bottom: 20px;
-        }
-        #loadingOverlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            display: none;
-        }
-        @media (max-width: 576px) {
-            .header {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                text-align: left;
-            }
-            .header img {
-                margin-bottom: 10px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Thực Đơn Canteen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@ss/bootstrap.min.css
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .logo {
+      max-height: 80px;
+    }
+    .header {
+      background-color: #ffffff;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .menu-card {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .menu-title {
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    .meal-section h6 {
+      font-weight: bold;
+      color: #34495e;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    @media (max-width: 576px) {
+      .header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        text-align: left;
+      }
+      .header img {
+        margin-bottom: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div id="loadingOverlay">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+  <div id="loadingOverlay">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header d-flex align-items-center justify-content-between flex-wrap">
+      https://adminmvppq.github.io/dataroom-mvppq/img/mvp_pq_logo.png
+      <div class="d-flex align-items-center gap-3">
+        <h2 class="text-primary m-0" id="pageTitle">Thực Đơn Canteen</h2>
+        <select id="languageSelect" class="form-select form-select-sm" style="width: auto">
+          <option value="vi">🇻🇳 Tiếng Việt</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
     </div>
 
-    <div class="container">
-        <div class="header d-flex align-items-center justify-content-between flex-wrap">
-            <img src="https://adminmvppq.github.io/dataroom-mvppq/img/mvp_pq_logo.png" alt="MVP PQ Logo" class="logo">
-            <div class="d-flex align-items-center gap-3">
-                <h2 class="text-primary m-0">Thực Đơn Canteen</h2>
-                <select id="languageSelect" class="form-select form-select-sm" style="width:auto;">
-                    <option value="vi">🇻🇳 Viet Nam</option>
-                    <option value="en">🇬🇧 English</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="search-bar row g-2 align-items-end">
-            <div class="col-md-4">
-                <label for="searchType" class="form-label lang" data-key="searchTypeLabel">Loại tìm kiếm</label>
-                <select id="searchType" class="form-select">
-                    <option value="day" class="lang" data-key="byDay">Theo ngày</option>
-                    <option value="week" class="lang" data-key="byWeek">Theo tuần</option>
-                    <option value="month" class="lang" data-key="byMonth">Theo tháng</option>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label for="searchDate" class="form-label lang" data-key="chooseDate">Chọn ngày</label>
-                <input type="date" id="searchDate" class="form-control">
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-primary w-100 lang" data-key="searchBtn" onclick="filterMenu()">Tìm</button>
-            </div>
-        </div>
-
-        <div id="menuContainer" class="row"></div>
+    <div class="row g-2 align-items-end mb-4">
+      <div class="col-md-4">
+        <label for="searchType" class="form-label" id="labelSearchType">Loại tìm kiếm</label>
+        <select id="searchType" class="form-select">
+          <option value="day">Theo ngày</option>
+          <option value="week">Theo tuần</option>
+          <option value="month">Theo tháng</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="searchDate" class="form-label" id="labelSearchDate">Chọn ngày</label>
+        <input type="date" id="searchDate" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary w-100" id="btnSearch" onclick="filterMenu()">Tìm</button>
+      </div>
     </div>
 
-    <script>
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=605327293&single=true&output=csv";
+    <div id="menuContainer" class="row"></div>
+  </div>
 
-        const translations = {
-            vi: {
-                searchTypeLabel: "Loại tìm kiếm",
-                byDay: "Theo ngày",
-                byWeek: "Theo tuần",
-                byMonth: "Theo tháng",
-                chooseDate: "Chọn ngày",
-                searchBtn: "Tìm",
-                appetizer: "Khai vị",
-                main: "Món chính",
-                dessert: "Tráng miệng",
-                dayTitle: "Ngày"
-            },
-            en: {
-                searchTypeLabel: "Search type",
-                byDay: "By day",
-                byWeek: "By week",
-                byMonth: "By month",
-                chooseDate: "Select date",
-                searchBtn: "Search",
-                appetizer: "Appetizer",
-                main: "Main course",
-                dessert: "Dessert",
-                dayTitle: "Date"
-            }
-        };
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=605327293&single=true&output=csv";
 
-        let currentLang = "vi";
+    const translations = {
+      vi: {
+        pageTitle: "Thực Đơn Canteen",
+        searchTypeLabel: "Loại tìm kiếm",
+        searchDateLabel: "Chọn ngày",
+        searchBtn: "Tìm",
+        day: "Theo ngày",
+        week: "Theo tuần",
+        month: "Theo tháng",
+        dayTitle: "Ngày",
+        appetizer: "Khai vị",
+        main: "Món chính",
+        dessert: "Tráng miệng"
+      },
+      en: {
+        pageTitle: "Canteen Menu",
+        searchTypeLabel: "Search type",
+        searchDateLabel: "Select date",
+        searchBtn: "Search",
+        day: "By day",
+        week: "By week",
+        month: "By month",
+        dayTitle: "Date",
+        appetizer: "Appetizer",
+        main: "Main course",
+        dessert: "Dessert"
+      }
+    };
 
-        function showLoading(show) {
-            document.getElementById("loadingOverlay").style.display = show ? "flex" : "none";
-        }
+    let currentLang = "vi";
 
-        async function fetchMenuData() {
-            const response = await fetch(sheetUrl);
-            const data = await response.text();
-            const rows = data.split("\n").map(row => row.split(","));
-            const headers = rows[0];
-            const items = rows.slice(1).map(row => {
-                let item = {};
-                headers.forEach((h, i) => item[h.trim()] = row[i]?.trim());
-                return item;
-            });
-            return items;
-        }
+    document.getElementById("languageSelect").addEventListener("change", () => {
+      currentLang = document.getElementById("languageSelect").value;
+      updateLanguage();
+      filterMenu();
+    });
 
-        function groupByDate(data) {
-            const grouped = {};
-            data.forEach(item => {
-                const date = item["Ngày"];
-                if (!grouped[date]) grouped[date] = [];
-                grouped[date].push(item);
-            });
-            return grouped;
-        }
+    function updateLanguage() {
+      const t = translations[currentLang];
+      document.getElementById("pageTitle").innerText = t.pageTitle;
+      document.getElementById("labelSearchType").innerText = t.searchTypeLabel;
+      document.getElementById("labelSearchDate").innerText = t.searchDateLabel;
+      document.getElementById("btnSearch").innerText = t.searchBtn;
+      const options = document.getElementById("searchType").options;
+      options[0].text = t.day;
+      options[1].text = t.week;
+      options[2].text = t.month;
+    }
 
-        function renderMenu(data) {
-            const container = document.getElementById("menuContainer");
-            container.innerHTML = "";
-            const grouped = groupByDate(data);
-            Object.keys(grouped).forEach(date => {
-                const dayBlock = document.createElement("div");
-                dayBlock.className = "col-12 menu-card";
-                dayBlock.innerHTML = `<div class="menu-title">${translations[currentLang].dayTitle} ${date}</div>`;
-                const meals = grouped[date];
-                ["Sáng", "Trưa", "Tối"].forEach(meal => {
-                    const mealItems = meals.filter(m => m["Bữa ăn"] === meal);
-                    if (mealItems.length > 0) {
-                        const section = document.createElement("div");
-                        section.className = "meal-section";
-                        const icon = meal === "Sáng" ? "🌅" : meal === "Trưa" ? "🌞" : "🌙";
-                        section.innerHTML = `<h6>${icon} ${meal}</h6>`;
-                        mealItems.forEach(item => {
-                            section.innerHTML += `
-                                <div><strong>${translations[currentLang].appetizer}:</strong> ${item[\`Khai vị (${currentLang})\`] || ""}</div>
-                                <div><strong>${translations[currentLang].main}:</strong> ${item[\`Món chính (${currentLang})\`] || ""}</div>
-                                <div><strong>${translations[currentLang].dessert}:</strong> ${item[\`Tráng miệng (${currentLang})\`] || ""}</div>
-                                <hr>
-                            `;
-                        });
-                        dayBlock.appendChild(section);
-                    }
-                });
-                container.appendChild(dayBlock);
-            });
-        }
+    function showLoading(show) {
+      document.getElementById("loadingOverlay").style.display = show ? "flex" : "none";
+    }
 
-        function filterMenu() {
-            const type = document.getElementById("searchType").value;
-            const date = new Date(document.getElementById("searchDate").value);
-            if (!date.getTime()) return;
-            showLoading(true);
-            fetchMenuData().then(data => {
-                let filtered = [];
-                data.forEach(item => {
-                    const itemDate = new Date(item["Ngày"]);
-                    if (type === "day" && itemDate.toDateString() === date.toDateString()) {
-                        filtered.push(item);
-                    } else if (type === "week") {
-                        const startOfWeek = new Date(date);
-                        startOfWeek.setDate(date.getDate() - date.getDay());
-                        const endOfWeek = new Date(startOfWeek);
-                        endOfWeek.setDate(startOfWeek.getDate() + 6);
-                        if (itemDate >= startOfWeek && itemDate <= endOfWeek) {
-                            filtered.push(item);
-                        }
-                    } else if (type === "month" && itemDate.getMonth() === date.getMonth() && itemDate.getFullYear() === date.getFullYear()) {
-                        filtered.push(item);
-                    }
-                });
-                renderMenu(filtered);
-                showLoading(false);
-            }).catch(() => showLoading(false));
-        }
+    async function fetchMenuData() {
+      const response = await fetch(sheetUrl);
+      const text = await response.text();
+      const rows = text.trim().split("\n").map(row => row.split(","));
+      const headers = rows[0];
+      return rows.slice(1).map(row => {
+        const item = {};
+        headers.forEach((h, i) => item[h.trim()] = row[i]?.trim());
+        return item;
+      });
+    }
 
-        function updateLanguageUI() {
-            document.querySelectorAll(".lang").forEach(el => {
-                const key = el.getAttribute("data-key");
-                if (el.tagName === "OPTION" || el.tagName === "BUTTON") {
-                    el.textContent = translations[currentLang][key];
-                } else {
-                    el.innerText = translations[currentLang][key];
-                }
-            });
-        }
+    function groupByDate(data) {
+      const grouped = {};
+      data.forEach(item => {
+        const date = item["Ngày"];
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(item);
+      });
+      return grouped;
+    }
 
-        document.getElementById("languageSelect").addEventListener("change", function() {
-            currentLang = this.value;
-            updateLanguageUI();
-            filterMenu();
-        });
-
-        updateLanguageUI();
-    </script>
-</body>
-</html>
+    function renderMenu(data) {
+      const t = translations[currentLang];
+      const container = document.getElementById("menuContainer");
+      container.innerHTML = "";
+      const grouped = groupByDate(data);
+      Object.keys(grouped).forEach(date => {
+        const card = document.createElement("div");
+        card.className = "col-12 menu-card";
+        card.innerHTML = `<div class="menu-title">${t.dayTitle} ${date}</div>`;
+        ["Sáng", "Trưa", "Tối"].forEach(meal => {
+          const items = grouped[date].filter(i => i["Bữa ăn"] === meal);
+          if (items.length > 0) {
+            const icon = meal === "Sáng" ? "🌅" : meal === "Trưa" ? "🌞" : "🌙";
+            const section = document.createElement("div");
+            section
