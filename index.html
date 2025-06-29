@@ -192,7 +192,7 @@
           if (items.length > 0) {
             const icon = meal === "Sáng" ? "🌅" : meal === "Trưa" ? "🌞" : "🌙";
             const section = document.createElement("div");
-            section.innerHTML = '<h6>${icon} ${meal}</h6>';
+            section.innerHTML = `<h6>${icon} ${meal}</h6>`;
             items.forEach(item => {
               section.innerHTML += `
 			  <div><strong>${t.appetizer}:</strong> ${item[`Khai vị (${currentLang})`] ?? ""}</div>
