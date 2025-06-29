@@ -3,146 +3,160 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Menu Canteen</title>
+    <title>Thực Đơn Canteen</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .logo { max-height: 60px; }
-        .header { display: flex; align-items: center; justify-content: space-between; }
-        .search-bar { margin: 20px 0; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .menu-card { border: 1px solid #ccc; border-radius: 8px; padding: 15px; background: #f9f9f9; }
-        .menu-card h3 { margin-top: 0; }
-        .dropdown { padding: 8px; font-size: 16px; }
-        .date-input { padding: 8px; font-size: 16px; margin-left: 10px; }
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .logo {
+            max-height: 80px;
+        }
+        .header {
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .menu-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .menu-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .meal-section {
+            margin-bottom: 10px;
+        }
+        .meal-section h6 {
+            font-weight: bold;
+            color: #34495e;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="https://adminmvppq.github.io/dataroom-mvppq/img/mvp_pq_logo.png" alt="Company Logo" class="logo">
-        <h1>Thực Đơn Canteen</h1>
-    </div>
+    <div class="container">
+        <div class="header d-flex align-items-center justify-content-between">
+            <img src="https://via.placeholder.com/150x80?text=Logo" alt="Company Logo" class="logo">
+            <h2 class="text-primary">Thực Đơn Canteen</h2>
+        </div>
 
-    <div class="search-bar">
-        <label for="searchType">Tìm kiếm:</label>
-        <select id="searchType" class="dropdown">
-            <option value="day">Theo ngày</option>
-            <option value="week">Theo tuần</option>
-            <option value="month">Theo tháng</option>
-        </select>
-        <input type="date" id="searchDate" class="date-input">
-        <button onclick="filterMenu()">Tìm</button>
-    </div>
+        <div class="search-bar row g-2 align-items-end">
+            <div class="col-md-4">
+                <label for="searchType" class="form-label">Loại tìm kiếm</label>
+                <select id="searchType" class="form-select">
+                    <option value="day">Theo ngày</option>
+                    <option value="week">Theo tuần</option>
+                    <option value="month">Theo tháng</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchDate" class="form-label">Chọn ngày</label>
+                <input type="date" id="searchDate" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary w-100" onclick="filterMenu()">Tìm</button>
+            </div>
+        </div>
 
-    <div id="menuGrid" class="grid-container"></div>
+        <div id="menuContainer" class="row"></div>
+    </div>
 
     <script>
-        from bs4 import BeautifulSoup
-
-# Load the HTML content from the uploaded file
-with open("canteen_menu.html", "r", encoding="utf-8") as file:
-    soup = BeautifulSoup(file, "html.parser")
-
-# Define icons for each meal type
-meal_icons = {
-    "Sáng": "🌅",   # Sunrise
-    "Trưa": "🌞",   # Sun
-    "Tối": "🌙"    # Moon
-}
-
-# Find all meal headers and prepend the corresponding icon
-for meal, icon in meal_icons.items():
-    headers = soup.find_all(lambda tag: tag.name in ["h4", "h5", "h6"] and meal in tag.text)
-    for header in headers:
-        if icon not in header.text:
-            header.string = f"{icon} {header.text.strip()}"
-
-# Save the updated HTML content
-with open("canteen_menu_with_icons.html", "w", encoding="utf-8") as file:
-    file.write(str(soup))
-
-print("Updated HTML file with meal icons saved as 'canteen_menu_with_icons.html'.")
-
-
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=1946670694&single=true&output=csv";
 
-        let menuData = [];
+        async function fetchMenuData() {
+            const response = await fetch(sheetUrl);
+            const data = await response.text();
+            const rows = data.split("\n").map(row => row.split(","));
+            const headers = rows[0];
+            const items = rows.slice(1).map(row => {
+                let item = {};
+                headers.forEach((h, i) => item[h.trim()] = row[i]?.trim());
+                return item;
+            });
+            return items;
+        }
 
         function groupByDate(data) {
             const grouped = {};
-            data.forEach(row => {
-                const date = row["Ngày"];
+            data.forEach(item => {
+                const date = item["Ngày"];
                 if (!grouped[date]) grouped[date] = [];
-                grouped[date].push(row);
+                grouped[date].push(item);
             });
             return grouped;
         }
 
         function renderMenu(data) {
-            const container = document.getElementById("menuGrid");
+            const container = document.getElementById("menuContainer");
             container.innerHTML = "";
             const grouped = groupByDate(data);
-            for (const date in grouped) {
-                const card = document.createElement("div");
-                card.className = "menu-card";
-                card.innerHTML = `<h3>${date}</h3>`;
-                grouped[date].forEach(item => {
-                    card.innerHTML += `
-                        <p><strong>${item["Bữa ăn"]}</strong></p>
-                        <ul>
-                            <li><strong>Khai vị:</strong> ${item["Khai vị"]}</li>
-                            <li><strong>Món chính:</strong> ${item["Món chính"]}</li>
-                            <li><strong>Tráng miệng:</strong> ${item["Tráng miệng"]}</li>
-                        </ul>
-                    `;
+            Object.keys(grouped).forEach(date => {
+                const dayBlock = document.createElement("div");
+                dayBlock.className = "col-12 menu-card";
+                dayBlock.innerHTML = `<div class="menu-title">Ngày ${date}</div>`;
+                const meals = grouped[date];
+                ["Sáng", "Trưa", "Tối"].forEach(meal => {
+                    const mealItems = meals.filter(m => m["Bữa ăn"] === meal);
+                    if (mealItems.length > 0) {
+                        const section = document.createElement("div");
+                        section.className = "meal-section";
+                        section.innerHTML = `<h6>${meal}</h6>`;
+                        mealItems.forEach(item => {
+                            section.innerHTML += `
+                                <div><strong>Khai vị:</strong> ${item["Khai vị"]}</div>
+                                <div><strong>Món chính:</strong> ${item["Món chính"]}</div>
+                                <div><strong>Tráng miệng:</strong> ${item["Tráng miệng"]}</div>
+                                <hr>
+                            `;
+                        });
+                        dayBlock.appendChild(section);
+                    }
                 });
-                container.appendChild(card);
-            }
+                container.appendChild(dayBlock);
+            });
         }
 
         function filterMenu() {
             const type = document.getElementById("searchType").value;
-            const dateInput = document.getElementById("searchDate").value;
-            if (!dateInput) return alert("Vui lòng chọn ngày");
-
-            const selectedDate = new Date(dateInput);
-            const filtered = menuData.filter(row => {
-                const rowDate = new Date(row["Ngày"]);
-                if (type === "day") {
-                    return rowDate.toDateString() === selectedDate.toDateString();
-                } else if (type === "week") {
-                    const startOfWeek = new Date(selectedDate);
-                    startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(startOfWeek.getDate() + 6);
-                    return rowDate >= startOfWeek && rowDate <= endOfWeek;
-                } else if (type === "month") {
-                    return rowDate.getMonth() === selectedDate.getMonth() &&
-                           rowDate.getFullYear() === selectedDate.getFullYear();
-                }
-                return false;
-            });
-
-            renderMenu(filtered);
-        }
-
-        function parseCSV(text) {
-            const lines = text.trim().split("\n");
-            const headers = lines[0].split(",");
-            return lines.slice(1).map(line => {
-                const values = line.split(",");
-                const obj = {};
-                headers.forEach((h, i) => obj[h.trim()] = values[i]?.trim());
-                return obj;
+            const date = new Date(document.getElementById("searchDate").value);
+            fetchMenuData().then(data => {
+                let filtered = [];
+                data.forEach(item => {
+                    const itemDate = new Date(item["Ngày"]);
+                    if (type === "day" && itemDate.toDateString() === date.toDateString()) {
+                        filtered.push(item);
+                    } else if (type === "week") {
+                        const startOfWeek = new Date(date);
+                        startOfWeek.setDate(date.getDate() - date.getDay());
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setDate(startOfWeek.getDate() + 6);
+                        if (itemDate >= startOfWeek && itemDate <= endOfWeek) {
+                            filtered.push(item);
+                        }
+                    } else if (type === "month" && itemDate.getMonth() === date.getMonth() && itemDate.getFullYear() === date.getFullYear()) {
+                        filtered.push(item);
+                    }
+                });
+                renderMenu(filtered);
             });
         }
 
-        fetch(sheetUrl)
-            .then(res => res.text())
-            .then(text => {
-                menuData = parseCSV(text);
-                renderMenu(menuData);
-            });
+        // Load all data on page load
+        fetchMenuData().then(renderMenu);
     </script>
 </body>
 </html>
