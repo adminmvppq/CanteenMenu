@@ -77,11 +77,11 @@
     <div class="container">
         <div class="header d-flex align-items-center justify-content-between flex-wrap">
             <img src="https://adminmvppq.github.io/dataroom-mvppq/img/mvp_pq_logo.png" alt="MVP PQ Logo" class="logo">
-            <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-                <h2 id="pageTitle" class="text-primary mb-0">Thực Đơn Canteen</h2>
-                <select id="langSelect" class="form-select form-select-sm w-auto ms-md-3" onchange="changeLang(this.value)">
-                    <option value="vi">🇻🇳 Tiếng Việt</option>
-                    <option value="en">🇬🇧 English</option>
+            <div class="d-flex align-items-center gap-3">
+                <h2 class="text-primary" id="title">Thực Đơn Canteen</h2>
+                <select id="languageSelect" class="form-select form-select-sm" onchange="changeLanguage()" style="width: auto;">
+                    <option value="vi">🇻🇳 VN</option>
+                    <option value="en">🇬🇧 EN</option>
                 </select>
             </div>
         </div>
@@ -100,7 +100,7 @@
                 <input type="date" id="searchDate" class="form-control">
             </div>
             <div class="col-md-4">
-                <button class="btn btn-primary w-100" id="btnSearch" onclick="filterMenu()">Tìm</button>
+                <button class="btn btn-primary w-100" onclick="filterMenu()" id="btnSearch">Tìm</button>
             </div>
         </div>
 
@@ -113,15 +113,10 @@
         const translations = {
             vi: {
                 title: "Thực Đơn Canteen",
-                searchType: "Loại tìm kiếm",
-                searchDate: "Chọn ngày",
-                searchBtn: "Tìm",
-                day: "Theo ngày",
-                week: "Theo tuần",
-                month: "Theo tháng",
-                breakfast: "🌅 Sáng",
-                lunch: "🌞 Trưa",
-                dinner: "🌙 Tối",
+                labelSearchType: "Loại tìm kiếm",
+                labelSearchDate: "Chọn ngày",
+                btnSearch: "Tìm",
+                meals: { "Sáng": "🌅 Sáng", "Trưa": "🌞 Trưa", "Tối": "🌙 Tối" },
                 appetizer: "Khai vị",
                 main: "Món chính",
                 dessert: "Tráng miệng",
@@ -129,15 +124,10 @@
             },
             en: {
                 title: "Canteen Menu",
-                searchType: "Search type",
-                searchDate: "Select date",
-                searchBtn: "Search",
-                day: "By day",
-                week: "By week",
-                month: "By month",
-                breakfast: "🌅 Breakfast",
-                lunch: "🌞 Lunch",
-                dinner: "🌙 Dinner",
+                labelSearchType: "Search type",
+                labelSearchDate: "Select date",
+                btnSearch: "Search",
+                meals: { "Sáng": "🌅 Breakfast", "Trưa": "🌞 Lunch", "Tối": "🌙 Dinner" },
                 appetizer: "Appetizer",
                 main: "Main course",
                 dessert: "Dessert",
@@ -147,18 +137,17 @@
 
         let currentLang = "vi";
 
-        function changeLang(lang) {
-            currentLang = lang;
-            const t = translations[lang];
-            document.getElementById("pageTitle").innerText = t.title;
-            document.getElementById("labelSearchType").innerText = t.searchType;
-            document.getElementById("labelSearchDate").innerText = t.searchDate;
-            document.getElementById("btnSearch").innerText = t.searchBtn;
-
-            const searchType = document.getElementById("searchType");
-            searchType.options[0].text = t.day;
-            searchType.options[1].text = t.week;
-            searchType.options[2].text = t.month;
+        function changeLanguage() {
+            currentLang = document.getElementById("languageSelect").value;
+            const t = translations[currentLang];
+            document.getElementById("title").innerText = t.title;
+            document.getElementById("labelSearchType").innerText = t.labelSearchType;
+            document.getElementById("labelSearchDate").innerText = t.labelSearchDate;
+            document.getElementById("btnSearch").innerText = t.btnSearch;
+            const options = document.getElementById("searchType").options;
+            options[0].text = currentLang === "vi" ? "Theo ngày" : "By day";
+            options[1].text = currentLang === "vi" ? "Theo tuần" : "By week";
+            options[2].text = currentLang === "vi" ? "Theo tháng" : "By month";
         }
 
         function showLoading(show) {
@@ -168,8 +157,7 @@
         async function fetchMenuData() {
             const response = await fetch(sheetUrl);
             const data = await response.text();
-            const rows = data.split("
-").map(row => row.split(","));
+            const rows = data.split("\n").map(row => row.split(","));
             const headers = rows[0];
             const items = rows.slice(1).map(row => {
                 let item = {};
@@ -204,8 +192,7 @@
                     if (mealItems.length > 0) {
                         const section = document.createElement("div");
                         section.className = "meal-section";
-                        const iconLabel = meal === "Sáng" ? t.breakfast : meal === "Trưa" ? t.lunch : t.dinner;
-                        section.innerHTML = `<h6>${iconLabel}</h6>`;
+                        section.innerHTML = `<h6>${t.meals[meal]}</h6>`;
                         mealItems.forEach(item => {
                             section.innerHTML += `
                                 <div><strong>${t.appetizer}:</strong> ${item["Khai vị"]}</div>
@@ -249,8 +236,10 @@
             }).catch(() => showLoading(false));
         }
 
-        // Set default language
-        changeLang("vi");
+        // Set default language on load
+        window.onload = () => {
+            changeLanguage();
+        };
     </script>
 </body>
 </html>
