@@ -55,6 +55,18 @@
             z-index: 9999;
             display: none;
         }
+
+         /* Responsive fix for mobile */
+        @media (max-width: 576px) {
+            .header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                text-align: left;
+            }
+            .header img {
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body>
