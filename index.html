@@ -186,7 +186,7 @@
       Object.keys(grouped).forEach(date => {
         const card = document.createElement("div");
         card.className = "col-12 menu-card";
-        card.innerHTML = '<div class="menu-title">${t.dayTitle} ${date}</div>';
+        card.innerHTML = `<div class="menu-title">${t.dayTitle} ${date}</div>`;
         ["Sáng", "Trưa", "Tối"].forEach(meal => {
           const items = grouped[date].filter(i => i["Bữa ăn"] === meal);
           if (items.length > 0) {
@@ -194,11 +194,11 @@
             const section = document.createElement("div");
             section.innerHTML = '<h6>${icon} ${meal}</h6>';
             items.forEach(item => {
-              section.innerHTML += '
-                <div><strong>${t.appetizer}:</strong> ${item[\'Khai vị (${currentLang})\'] || ""}</div>
-                <div><strong>${t.main}:</strong> ${item[\'Món chính (${currentLang})\'] || ""}</div>
-                <div><strong>${t.dessert}:</strong> ${item[\'Tráng miệng (${currentLang})\'] || ""}</div>
-                <hr>';
+              section.innerHTML += `
+			  <div><strong>${t.appetizer}:</strong> ${item[`Khai vị (${currentLang})`] ?? ""}</div>
+			  <div><strong>${t.main}:</strong> ${item[`Món chính (${currentLang})`] ?? ""}</div>
+			  <div><strong>${t.dessert}:</strong> ${item[`Tráng miệng (${currentLang})`] ?? ""}</div>
+			  <hr>`;
             });
             card.appendChild(section);
           }
