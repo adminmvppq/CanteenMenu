@@ -37,6 +37,33 @@
     <div id="menuGrid" class="grid-container"></div>
 
     <script>
+        from bs4 import BeautifulSoup
+
+# Load the HTML content from the uploaded file
+with open("canteen_menu.html", "r", encoding="utf-8") as file:
+    soup = BeautifulSoup(file, "html.parser")
+
+# Define icons for each meal type
+meal_icons = {
+    "Sáng": "🌅",   # Sunrise
+    "Trưa": "🌞",   # Sun
+    "Tối": "🌙"    # Moon
+}
+
+# Find all meal headers and prepend the corresponding icon
+for meal, icon in meal_icons.items():
+    headers = soup.find_all(lambda tag: tag.name in ["h4", "h5", "h6"] and meal in tag.text)
+    for header in headers:
+        if icon not in header.text:
+            header.string = f"{icon} {header.text.strip()}"
+
+# Save the updated HTML content
+with open("canteen_menu_with_icons.html", "w", encoding="utf-8") as file:
+    file.write(str(soup))
+
+print("Updated HTML file with meal icons saved as 'canteen_menu_with_icons.html'.")
+
+
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=1946670694&single=true&output=csv";
 
         let menuData = [];
