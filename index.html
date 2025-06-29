@@ -44,9 +44,26 @@
         .search-bar {
             margin-bottom: 20px;
         }
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header d-flex align-items-center justify-content-between">
             <img src="https://adminmvppq.github.io/dataroom-mvppq/img/mvp_pq_logo.png" alt="MVP PQ Logo" class="logo">
@@ -76,6 +93,10 @@
 
     <script>
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9XmNWZdN8-1IgPIO6ouqwHeICx_Sam1EvPmeAsMvHDTKMFVYLna4HD4LHnjEJllC5er7mZ3r8UrV/pub?gid=1946670694&single=true&output=csv";
+
+        function showLoading(show) {
+            document.getElementById("loadingOverlay").style.display = show ? "flex" : "none";
+        }
 
         async function fetchMenuData() {
             const response = await fetch(sheetUrl);
@@ -114,7 +135,8 @@
                     if (mealItems.length > 0) {
                         const section = document.createElement("div");
                         section.className = "meal-section";
-                        section.innerHTML = `<h6>${meal}</h6>`;
+                        const icon = meal === "Sáng" ? "🌅" : meal === "Trưa" ? "🌞" : "🌙";
+                        section.innerHTML = `<h6>${icon} ${meal}</h6>`;
                         mealItems.forEach(item => {
                             section.innerHTML += `
                                 <div><strong>Khai vị:</strong> ${item["Khai vị"]}</div>
@@ -133,6 +155,8 @@
         function filterMenu() {
             const type = document.getElementById("searchType").value;
             const date = new Date(document.getElementById("searchDate").value);
+            if (!date.getTime()) return;
+            showLoading(true);
             fetchMenuData().then(data => {
                 let filtered = [];
                 data.forEach(item => {
@@ -152,11 +176,9 @@
                     }
                 });
                 renderMenu(filtered);
-            });
+                showLoading(false);
+            }).catch(() => showLoading(false));
         }
-
-        // Load all data on page load
-        fetchMenuData().then(renderMenu);
     </script>
 </body>
 </html>
